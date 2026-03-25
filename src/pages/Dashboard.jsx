@@ -11,7 +11,8 @@ import {
   Pie,
   Cell
 } from 'recharts';
-import { TrendingUp, Users, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { TrendingUp, Users, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
+
 import { dashboardService } from '../services/api';
 import './Dashboard.css';
 
@@ -25,21 +26,38 @@ const Dashboard = () => {
     portfolioDistribution: []
   });
 
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
-    console.log('Dashboard: Fetching from', dashboardService.getStatsUrl());
     const fetchStats = async () => {
+      setLoading(true);
       try {
+        console.log('Dashboard: Fetching stats...');
         const data = await dashboardService.getStats();
+        console.log('Dashboard: Received stats:', data);
         setStats(data);
       } catch (err) {
         console.error('Error fetching stats:', err);
+      } finally {
+        setLoading(false);
       }
     };
     fetchStats();
   }, []);
 
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="animate-spin text-blue-500" size={40} />
+        <span className="ml-3 text-gray-500 font-medium">Cargando datos del sistema...</span>
+      </div>
+    );
+  }
+
   return (
     <div className="dashboard-view">
+
       <div className="stats-grid">
         <div className="card kpi-card">
           <div className="kpi-header">
