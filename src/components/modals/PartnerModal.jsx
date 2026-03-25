@@ -108,10 +108,14 @@ const PartnerModal = ({ isOpen, onClose, onSuccess, defaultType = 'Investor', in
                 <div className="input-with-icon">
                   <Phone size={18} />
                   <input 
-                    type="text" 
+                    type="tel" 
+                    maxLength={10}
                     value={formData.phone}
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                    placeholder="555-0123"
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                      setFormData({...formData, phone: val});
+                    }}
+                    placeholder="Ej: 4421234567"
                   />
                 </div>
               </div>
