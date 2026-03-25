@@ -157,7 +157,8 @@ app.get('/api/loans', async (req, res) => {
                    l.termmonths as "TermMonths", l.status as "Status", l.light as "Light", 
                    TO_CHAR(l.startdate, 'YYYY-MM-DD') as "StartDate", 
                    TO_CHAR(l.nextpaymentdate, 'YYYY-MM-DD') as "NextPaymentDate",
-                   c.name as "ClientName"
+                   c.name as "ClientName",
+                   (l.amount - COALESCE((SELECT SUM(AppliedCapital) FROM Payments WHERE LoanId = l.id), 0)) as "Balance"
             FROM loans l
             JOIN clients c ON l.clientid = c.id
             ORDER BY l.createdat DESC
@@ -169,6 +170,7 @@ app.get('/api/loans', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+
 
 // 3. Stats (Dashboard)
 app.get('/api/stats', async (req, res) => {
