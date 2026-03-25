@@ -60,7 +60,13 @@ app.get('/api/health', async (req, res) => {
 app.get('/api/clients', async (req, res) => {
     try {
         const pool = await poolPromise;
-        const result = await pool.query('SELECT *, (SELECT COUNT(*) FROM Loans WHERE ClientId = Clients.Id AND Status = \'Active\') as ActiveLoansCount FROM Clients ORDER BY CreatedAt DESC');
+        const result = await pool.query(`
+            SELECT c.id as "Id", c.name as "Name", c.email as "Email", c.phone as "Phone", 
+                   c.address as "Address", c.notes as "Notes",
+                   (SELECT COUNT(*) FROM loans l WHERE l.clientid = c.id AND l.status = 'Active') as "ActiveLoansCount"
+            FROM clients c
+            ORDER BY c.createdat DESC
+        `);
         res.json(result.rows);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -122,10 +128,14 @@ app.get('/api/loans', async (req, res) => {
     try {
         const pool = await poolPromise;
         const result = await pool.query(`
-            SELECT l.*, c.Name as ClientName 
-            FROM Loans l 
-            JOIN Clients c ON l.ClientId = c.Id 
-            ORDER BY l.CreatedAt DESC
+            SELECT l.id as "Id", l.clientid as "ClientId", l.propertyid as "PropertyId", 
+                   l.amount as "Amount", l.interestrate as "InterestRate", l.moratoriorate as "MoratorioRate", 
+                   l.termmonths as "TermMonths", l.status as "Status", l.light as "Light", 
+                   l.startdate as "StartDate", l.nextpaymentdate as "NextPaymentDate",
+                   c.name as "ClientName"
+            FROM loans l
+            JOIN clients c ON l.clientid = c.id
+            ORDER BY l.createdat DESC
         `);
         res.json(result.rows);
     } catch (err) {
@@ -215,21 +225,22 @@ app.get('/api/partners', async (req, res) => {
     try {
         const pool = await poolPromise;
         let query = `
-            SELECT P.*, 
-                   (SELECT COUNT(*) FROM LoanInvestors LI 
-                    JOIN Loans L ON LI.LoanId = L.Id 
-                    WHERE LI.PartnerId = P.Id AND L.Status = 'Active') as ActiveLoansCount,
-                   (SELECT COUNT(DISTINCT PR.ClientId) FROM Valuations V
-                    JOIN Properties PR ON V.PropertyId = PR.Id
-                    WHERE V.ReferrerId = P.Id) as ReferredClientsCount
-            FROM Partners P
+            SELECT P.id as "Id", P.name as "Name", P.type as "Type", P.phone as "Phone", 
+                   P.email as "Email", P.commissionrate as "CommissionRate", P.balance as "Balance",
+                   (SELECT COUNT(*) FROM loaninvestors LI 
+                    JOIN loans L ON LI.loanid = L.id 
+                    WHERE LI.partnerid = P.id AND L.status = 'Active') as "ActiveLoansCount",
+                   (SELECT COUNT(DISTINCT PR.clientid) FROM valuations V
+                    JOIN properties PR ON V.propertyid = PR.id
+                    WHERE V.referrerid = P.id) as "ReferredClientsCount"
+            FROM partners P
         `;
         const params = [];
         if (type) {
-            query += ` WHERE P.Type = $1`;
+            query += ` WHERE P.type = $1`;
             params.push(type);
         }
-        query += ' ORDER BY P.CreatedAt DESC';
+        query += ' ORDER BY P.createdat DESC';
         const result = await pool.query(query, params);
         res.json(result.rows);
     } catch (err) {
@@ -287,11 +298,13 @@ app.get('/api/properties', async (req, res) => {
     try {
         const pool = await poolPromise;
         const result = await pool.query(`
-            SELECT p.*, c.Name as OwnerName,
-            (SELECT ApprovedAmount FROM Valuations WHERE PropertyId = p.Id AND Status = 'Evaluated' ORDER BY CreatedAt DESC LIMIT 1) as ValuatedAmount
-            FROM Properties p 
-            JOIN Clients c ON p.ClientId = c.Id 
-            ORDER BY p.CreatedAt DESC
+            SELECT p.id as "Id", p.clientid as "ClientId", p.description as "Description", 
+                   p.location as "Location", p.estimatedvalue as "EstimatedValue", p.status as "Status",
+                   c.name as "OwnerName",
+                   (SELECT approvedamount FROM valuations WHERE propertyid = p.id AND status = 'Evaluated' ORDER BY createdat DESC LIMIT 1) as "ValuatedAmount"
+            FROM properties p 
+            JOIN clients c ON p.clientid = c.id 
+            ORDER BY p.createdat DESC
         `);
         res.json(result.rows);
     } catch (err) {
@@ -385,12 +398,17 @@ app.get('/api/valuations', async (req, res) => {
     try {
         const pool = await poolPromise;
         const result = await pool.query(`
-            SELECT v.*, p.Description as PropertyDesc, p.Location as PropertyLoc, r.Name as ReferrerName, c.Name as ClientName
+            SELECT v.id as "Id", v.propertyid as "PropertyId", v.referrerid as "ReferrerId", 
+                   v.status as "Status", v.requestedamount as "RequestedAmount", 
+                   v.approvedamount as "ApprovedAmount", v.centralnotes as "CentralNotes", 
+                   v.photos as "Photos", v.latitude as "latitude", v.longitude as "longitude",
+                   p.description as "PropertyDesc", p.location as "PropertyLoc", 
+                   r.name as "ReferrerName", c.name as "ClientName"
             FROM valuations v
-            JOIN properties p ON v.PropertyId = p.Id
-            JOIN partners r ON v.ReferrerId = r.Id
-            JOIN clients c ON p.ClientId = c.Id
-            ORDER BY v.CreatedAt DESC
+            JOIN properties p ON v.propertyid = p.id
+            JOIN partners r ON v.referrerid = r.id
+            JOIN clients c ON p.clientid = c.id
+            ORDER BY v.createdat DESC
         `);
         res.json(result.rows);
     } catch (err) {
