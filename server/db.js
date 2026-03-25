@@ -1,32 +1,27 @@
-const sql = require('mssql');
+const { Pool } = require('pg');
 require('dotenv').config();
 
-const rawServer = process.env.DB_SERVER || 'localhost';
-const serverParts = rawServer.split(/\\+/); // Split by one or more backslashes
+// En la nube (Render/Supabase/Railway), usamos DATABASE_URL.
+// En local, podemos seguir usando variables individuales o una URL.
+const connectionString = process.env.DATABASE_URL || `postgresql://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_SERVER || 'localhost'}:5432/${process.env.DB_NAME}`;
 
-const config = {
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    server: serverParts[0] || 'localhost',
-    database: process.env.DB_NAME,
-    options: {
-        encrypt: true,
-        trustServerCertificate: process.env.DB_TRUST_SERVER_CERTIFICATE === 'true',
-        instanceName: serverParts[1] // SQL Server Express instance name
-    }
-};
+const pool = new Pool({
+    connectionString,
+    ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
+});
 
-const poolPromise = new sql.ConnectionPool(config)
-    .connect()
-    .then(pool => {
-        console.log('Conectado a SQL Server Express');
+const poolPromise = pool.connect()
+    .then(client => {
+        console.log('Conectado a PostgreSQL');
+        client.release();
         return pool;
     })
     .catch(err => {
-        console.error('Error de conexión a la base de datos: ', err.message);
-        return null; // Return null so poolPromise resolves to null instead of throwing
+        console.error('Error de conexión a PostgreSQL: ', err.message);
+        return null;
     });
 
 module.exports = {
-    sql, poolPromise
+    pool,
+    poolPromise
 };
