@@ -3,6 +3,8 @@ import { createPortal } from 'react-dom';
 import { X, DollarSign, Calendar, FileText, Home, User, ArrowRight, History } from 'lucide-react';
 import './Modal.css';
 import { API_URL } from '../../config';
+import { formatDate } from '../../utils/dateUtils';
+
 
 const LoanDetailModal = ({ isOpen, onClose, loan }) => {
   const [payments, setPayments] = useState([]);
@@ -41,7 +43,8 @@ const LoanDetailModal = ({ isOpen, onClose, loan }) => {
             <div className="section">
               <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}><User size={18} /> Cliente</h3>
               <p className="font-bold">{loan.ClientName}</p>
-              <p className="text-muted" style={{ fontSize: '0.875rem' }}>Préstamo activo desde {new Date(loan.StartDate).toLocaleDateString()}</p>
+              <p className="text-muted" style={{ fontSize: '0.875rem' }}>Préstamo activo desde {formatDate(loan.StartDate)}</p>
+
               
               <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', marginTop: '1.5rem' }}><DollarSign size={18} /> Condiciones</h3>
               <div className="stats-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
@@ -67,9 +70,10 @@ const LoanDetailModal = ({ isOpen, onClose, loan }) => {
                   payments.map(p => (
                     <div key={p.Id} className="history-item" style={{ fontSize: '0.875rem', padding: '0.5rem 0', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between' }}>
                       <div>
-                        <strong>{new Date(p.PaymentDate).toLocaleDateString()}</strong>
+                        <strong>{formatDate(p.PaymentDate)}</strong>
                         <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{p.Type}</div>
                       </div>
+
                       <div className="text-green font-bold">+${p.Amount.toLocaleString()}</div>
                     </div>
                   ))

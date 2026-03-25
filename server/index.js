@@ -94,11 +94,12 @@ app.get('/api/clients/:id/loans', async (req, res) => {
         const pool = await poolPromise;
         const result = await pool.query(`
             SELECT id as "Id", amount as "Amount", interestrate as "InterestRate", 
-                   status as "Status", createdat as "CreatedAt"
+                   status as "Status", TO_CHAR(createdat, 'YYYY-MM-DD') as "CreatedAt"
             FROM Loans 
             WHERE ClientId = $1 
-            ORDER BY CreatedAt DESC
+            ORDER BY createdat DESC
         `, [req.params.id]);
+
         res.json(result.rows);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -154,12 +155,14 @@ app.get('/api/loans', async (req, res) => {
             SELECT l.id as "Id", l.clientid as "ClientId", l.propertyid as "PropertyId", 
                    l.amount as "Amount", l.interestrate as "InterestRate", l.moratoriorate as "MoratorioRate", 
                    l.termmonths as "TermMonths", l.status as "Status", l.light as "Light", 
-                   l.startdate as "StartDate", l.nextpaymentdate as "NextPaymentDate",
+                   TO_CHAR(l.startdate, 'YYYY-MM-DD') as "StartDate", 
+                   TO_CHAR(l.nextpaymentdate, 'YYYY-MM-DD') as "NextPaymentDate",
                    c.name as "ClientName"
             FROM loans l
             JOIN clients c ON l.clientid = c.id
             ORDER BY l.createdat DESC
         `);
+
         res.json(result.rows);
     } catch (err) {
         console.error('API Error (GET Loans):', err.message);
@@ -446,6 +449,7 @@ app.get('/api/valuations', async (req, res) => {
                    v.status as "Status", v.requestedamount as "RequestedAmount", 
                    v.approvedamount as "ApprovedAmount", v.centralnotes as "CentralNotes", 
                    v.photos as "Photos", v.latitude as "latitude", v.longitude as "longitude",
+                   TO_CHAR(v.createdat, 'YYYY-MM-DD') as "CreatedAt",
                    p.description as "PropertyDesc", p.location as "PropertyLoc", 
                    r.name as "ReferrerName", c.name as "ClientName"
             FROM valuations v
@@ -454,6 +458,7 @@ app.get('/api/valuations', async (req, res) => {
             JOIN clients c ON p.clientid = c.id
             ORDER BY v.createdat DESC
         `);
+
         res.json(result.rows);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -524,7 +529,14 @@ app.put('/api/valuations/:id', async (req, res) => {
 app.get('/api/loans/:id/payments', async (req, res) => {
     try {
         const pool = await poolPromise;
-        const result = await pool.query('SELECT id as "Id", loanid as "LoanId", amount as "Amount", type as "Type", paymentdate as "PaymentDate", notes as "Notes" FROM payments WHERE loanid = $1 ORDER BY paymentdate DESC', [req.params.id]);
+        const result = await pool.query(`
+            SELECT id as "Id", loanid as "LoanId", amount as "Amount", type as "Type", 
+                   TO_CHAR(paymentdate, 'YYYY-MM-DD') as "PaymentDate", notes as "Notes" 
+            FROM payments 
+            WHERE loanid = $1 
+            ORDER BY paymentdate DESC
+        `, [req.params.id]);
+
         res.json(result.rows);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -552,7 +564,8 @@ app.get('/api/partners/:id/loans', async (req, res) => {
         const result = await pool.query(`
                 SELECT L.id as "Id", L.clientid as "ClientId", L.amount as "Amount", 
                        L.interestrate as "InterestRate", L.status as "Status", 
-                       L.startdate as "StartDate", L.createdat as "CreatedAt",
+                       TO_CHAR(L.startdate, 'YYYY-MM-DD') as "StartDate", 
+                       TO_CHAR(L.createdat, 'YYYY-MM-DD') as "CreatedAt",
                        C.name as "ClientName" 
                 FROM loans L
                 JOIN clients C ON L.clientid = C.id
@@ -560,6 +573,7 @@ app.get('/api/partners/:id/loans', async (req, res) => {
                 WHERE LI.partnerid = $1
                 ORDER BY L.createdat DESC
             `, [req.params.id]);
+
         res.json(result.rows);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -570,7 +584,8 @@ app.get('/api/partners/:id/evaluations', async (req, res) => {
     try {
         const pool = await poolPromise;
         const result = await pool.query(`
-                SELECT V.id as "Id", V.status as "Status", V.createdat as "CreatedAt",
+                SELECT V.id as "Id", V.status as "Status", 
+                       TO_CHAR(V.createdat, 'YYYY-MM-DD') as "CreatedAt",
                        P.description as "PropertyDesc", C.name as "ClientName"
                 FROM valuations V
                 JOIN properties P ON V.propertyid = P.id
@@ -578,6 +593,7 @@ app.get('/api/partners/:id/evaluations', async (req, res) => {
                 WHERE V.referrerid = $1
                 ORDER BY V.createdat DESC
             `, [req.params.id]);
+
         res.json(result.rows);
     } catch (err) {
         res.status(500).json({ error: err.message });

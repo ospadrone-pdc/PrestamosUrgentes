@@ -3,6 +3,8 @@ import { createPortal } from 'react-dom';
 import { X, FileText, Calendar, DollarSign, ArrowRight } from 'lucide-react';
 import './Modal.css';
 import { API_URL } from '../../config';
+import { formatDate } from '../../utils/dateUtils';
+
 
 const ClientDetailModal = ({ isOpen, onClose, client }) => {
   const [loans, setLoans] = React.useState([]);
@@ -59,8 +61,9 @@ const ClientDetailModal = ({ isOpen, onClose, client }) => {
                         {loan.Status}
                       </span>
                       <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                        {new Date(loan.CreatedAt).toLocaleDateString()}
+                        {formatDate(loan.CreatedAt)}
                       </span>
+
                     </div>
                     <div className="loan-body">
                       <div className="amount">${parseFloat(loan.Amount).toLocaleString()}</div>
