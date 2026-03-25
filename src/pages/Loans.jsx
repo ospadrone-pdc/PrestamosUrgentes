@@ -82,7 +82,8 @@ const Loans = () => {
                   <td className="font-bold">{loan.ClientName || 'Cliente desconocido'}</td>
                   <td>${(loan.Amount || 0).toLocaleString()}</td>
                   <td>{loan.InterestRate || 0}%</td>
-                  <td>${(loan.Amount || 0).toLocaleString()}</td>
+                  <td>${(loan.Balance || 0).toLocaleString()}</td>
+
                   <td>{loan.NextPaymentDate || 'Sin fecha'}</td>
                   <td>
                     <span className={`status-badge light-${loan.Light?.toLowerCase() || 'green'}`}>

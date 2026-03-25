@@ -18,9 +18,11 @@ const PaymentModal = ({ isOpen, onClose, loan }) => {
   const modalRoot = document.getElementById('modal-root');
   if (!modalRoot) return null;
 
-  const interestDue = (loan.Amount * (loan.InterestRate / 100));
+  const currentBalance = parseFloat(loan.Balance || loan.Amount || 0);
+  const interestDue = (currentBalance * (loan.InterestRate / 100));
   const amountPaid = parseFloat(formData.amount) || 0;
   const capitalAbono = Math.max(0, amountPaid - interestDue);
+
 
   const handleSubmit = async () => {
     if (!formData.amount || parseFloat(formData.amount) <= 0) {
@@ -69,9 +71,10 @@ const PaymentModal = ({ isOpen, onClose, loan }) => {
         <div className="modal-content">
           <div className="loan-info-bar">
             <div className="info-item">
-              <span className="label">Préstamo</span>
-              <span className="value">${(loan.Amount || 0).toLocaleString()}</span>
+              <span className="label">Saldo Actual</span>
+              <span className="value font-bold text-primary">${(currentBalance).toLocaleString()}</span>
             </div>
+
             <div className="info-item">
               <span className="label">Tasa</span>
               <span className="value">{loan.InterestRate}%</span>
