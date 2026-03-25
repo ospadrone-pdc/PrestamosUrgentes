@@ -47,7 +47,7 @@ const Dashboard = () => {
           </div>
           <div className="kpi-value">${(stats?.totalPortfolio || 0).toLocaleString()}</div>
           <div className="kpi-footer">
-            <span className="trend positive">+8.4% vs mes anterior</span>
+            <span className="trend positive">Actualizado hoy</span>
           </div>
         </div>
 
