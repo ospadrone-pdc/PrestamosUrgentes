@@ -79,7 +79,7 @@ const ValuationDetailModal = ({ isOpen, onClose, valuation, onSuccess }) => {
             <FileText size={20} className="text-primary" />
             <div>
               <h2 style={{ marginBottom: '2px' }}>Detalles de Valuación</h2>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Solicitud #{valuation.Id.substring(0, 8)}</p>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Solicitud #{valuation.Id?.substring(0, 8) || '---'}</p>
             </div>
           </div>
           <button className="close-btn" onClick={onClose}><X /></button>

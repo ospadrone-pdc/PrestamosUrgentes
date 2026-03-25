@@ -480,7 +480,7 @@ app.put('/api/valuations/:id', async (req, res) => {
 app.get('/api/loans/:id/payments', async (req, res) => {
     try {
         const pool = await poolPromise;
-        const result = await pool.query('SELECT * FROM Payments WHERE LoanId = $1 ORDER BY PaymentDate DESC', [req.params.id]);
+        const result = await pool.query('SELECT id as "Id", loanid as "LoanId", amount as "Amount", type as "Type", paymentdate as "PaymentDate", notes as "Notes" FROM payments WHERE loanid = $1 ORDER BY paymentdate DESC', [req.params.id]);
         res.json(result.rows);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -506,12 +506,15 @@ app.get('/api/partners/:id/loans', async (req, res) => {
     try {
         const pool = await poolPromise;
         const result = await pool.query(`
-                SELECT L.*, C.Name as ClientName 
-                FROM Loans L
-                JOIN Clients C ON L.ClientId = C.Id
-                JOIN LoanInvestors LI ON L.Id = LI.LoanId
-                WHERE LI.PartnerId = $1
-                ORDER BY L.CreatedAt DESC
+                SELECT L.id as "Id", L.clientid as "ClientId", L.amount as "Amount", 
+                       L.interestrate as "InterestRate", L.status as "Status", 
+                       L.startdate as "StartDate", L.createdat as "CreatedAt",
+                       C.name as "ClientName" 
+                FROM loans L
+                JOIN clients C ON L.clientid = C.id
+                JOIN loaninvestors LI ON L.id = LI.loanid
+                WHERE LI.partnerid = $1
+                ORDER BY L.createdat DESC
             `, [req.params.id]);
         res.json(result.rows);
     } catch (err) {
@@ -523,12 +526,13 @@ app.get('/api/partners/:id/evaluations', async (req, res) => {
     try {
         const pool = await poolPromise;
         const result = await pool.query(`
-                SELECT V.*, P.Description as PropertyDesc, C.Name as ClientName
-                FROM Valuations V
-                JOIN Properties P ON V.PropertyId = P.Id
-                JOIN Clients C ON P.ClientId = C.Id
-                WHERE V.ReferrerId = $1
-                ORDER BY V.CreatedAt DESC
+                SELECT V.id as "Id", V.status as "Status", V.createdat as "CreatedAt",
+                       P.description as "PropertyDesc", C.name as "ClientName"
+                FROM valuations V
+                JOIN properties P ON V.propertyid = P.id
+                JOIN clients C ON P.clientid = C.id
+                WHERE V.referrerid = $1
+                ORDER BY V.createdat DESC
             `, [req.params.id]);
         res.json(result.rows);
     } catch (err) {
@@ -541,11 +545,13 @@ app.get('/api/legal', async (req, res) => {
     try {
         const pool = await poolPromise;
         const result = await pool.query(`
-            SELECT LC.*, L.Amount as LitigantAmount, C.Name as ClientName 
-            FROM LegalCases LC
-            JOIN Loans L ON LC.LoanId = L.Id
-            JOIN Clients C ON L.ClientId = C.Id
-            ORDER BY LC.CreatedAt DESC
+            SELECT LC.id as "Id", LC.loanid as "LoanId", LC.expediente as "Expediente", 
+                   LC.lawyer as "Lawyer", LC.notes as "Notes", LC.status as "Status",
+                   L.amount as "LitigantAmount", C.name as "ClientName" 
+            FROM legalcases LC
+            JOIN loans L ON LC.loanid = L.id
+            JOIN clients C ON L.clientid = C.id
+            ORDER BY LC.createdat DESC
         `);
         res.json(result.rows);
     } catch (err) {

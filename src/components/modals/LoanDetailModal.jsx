@@ -32,7 +32,7 @@ const LoanDetailModal = ({ isOpen, onClose, loan }) => {
     <div className="modal-overlay">
       <div className="modal-container card" style={{ maxWidth: '800px' }}>
         <div className="modal-header">
-          <h2>Detalle de Operación - {loan.Id.substring(0,8)}</h2>
+          <h2>Detalle de Operación - {loan.Id?.substring(0,8) || '---'}</h2>
           <button className="close-btn" onClick={onClose}><X /></button>
         </div>
 
