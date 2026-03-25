@@ -92,12 +92,19 @@ app.get('/api/clients', async (req, res) => {
 app.get('/api/clients/:id/loans', async (req, res) => {
     try {
         const pool = await poolPromise;
-        const result = await pool.query('SELECT * FROM Loans WHERE ClientId = $1 ORDER BY CreatedAt DESC', [req.params.id]);
+        const result = await pool.query(`
+            SELECT id as "Id", amount as "Amount", interestrate as "InterestRate", 
+                   status as "Status", createdat as "CreatedAt"
+            FROM Loans 
+            WHERE ClientId = $1 
+            ORDER BY CreatedAt DESC
+        `, [req.params.id]);
         res.json(result.rows);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
+
 
 app.post('/api/clients', async (req, res) => {
     const { name, email, phone, address, notes } = req.body;
