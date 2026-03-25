@@ -110,6 +110,22 @@ const ValuationDetailModal = ({ isOpen, onClose, valuation, onSuccess }) => {
                 <label>Monto Sugerido</label>
                 <span className="font-bold text-primary">${(valuation.RequestedAmount || 0).toLocaleString()}</span>
               </div>
+              {valuation.latitude && valuation.longitude && (
+                <div className="item location-item">
+                  <label>Ubicación GPS</label>
+                  <div className="location-actions">
+                    <span className="coords">{valuation.latitude}, {valuation.longitude}</span>
+                    <a 
+                      href={`https://www.google.com/maps?q=${valuation.latitude},${valuation.longitude}`} 
+                      target="_blank" 
+                      rel="noreferrer"
+                      className="btn-map-link"
+                    >
+                      <MapPin size={14} /> Ver en Maps
+                    </a>
+                  </div>
+                </div>
+              )}
             </div>
 
             <h3 className="section-title" style={{ marginTop: '1.5rem' }}>Evidencia (Fotos)</h3>
@@ -220,6 +236,42 @@ const ValuationDetailModal = ({ isOpen, onClose, valuation, onSuccess }) => {
           display: flex;
           justify-content: space-between;
           font-size: 0.9rem;
+          padding: 0.5rem 0;
+          border-bottom: 1px solid #eef2f6;
+        }
+        .info-card-lite .item:last-child {
+          border-bottom: none;
+        }
+        .location-item {
+          flex-direction: column !important;
+          gap: 0.5rem;
+        }
+        .location-actions {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          width: 100%;
+        }
+        .coords {
+          font-size: 0.75rem;
+          color: #64748b;
+          font-family: monospace;
+        }
+        .btn-map-link {
+          display: flex;
+          align-items: center;
+          gap: 0.25rem;
+          font-size: 0.75rem;
+          color: var(--primary);
+          text-decoration: none;
+          font-weight: 600;
+          padding: 0.25rem 0.5rem;
+          background: #eff6ff;
+          border-radius: 4px;
+          transition: background 0.2s;
+        }
+        .btn-map-link:hover {
+          background: #dbeafe;
         }
         .info-card-lite label {
           color: var(--text-muted);

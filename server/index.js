@@ -386,10 +386,10 @@ app.get('/api/valuations', async (req, res) => {
         const pool = await poolPromise;
         const result = await pool.query(`
             SELECT v.*, p.Description as PropertyDesc, p.Location as PropertyLoc, r.Name as ReferrerName, c.Name as ClientName
-            FROM Valuations v
-            JOIN Properties p ON v.PropertyId = p.Id
-            JOIN Partners r ON v.ReferrerId = r.Id
-            JOIN Clients c ON p.ClientId = c.Id
+            FROM valuations v
+            JOIN properties p ON v.PropertyId = p.Id
+            JOIN partners r ON v.ReferrerId = r.Id
+            JOIN clients c ON p.ClientId = c.Id
             ORDER BY v.CreatedAt DESC
         `);
         res.json(result.rows);
@@ -399,7 +399,7 @@ app.get('/api/valuations', async (req, res) => {
 });
 
 app.post('/api/valuations', upload.array('photos', 5), async (req, res) => {
-    const { propertyId, referrerId, requestedAmount } = req.body;
+    const { propertyId, referrerId, requestedAmount, latitude, longitude } = req.body;
     const photoPaths = req.files.map(f => `/uploads/${f.filename}`);
     const client = await poolPromise.connect();
     try {
@@ -407,8 +407,8 @@ app.post('/api/valuations', upload.array('photos', 5), async (req, res) => {
         const amount = parseFloat(requestedAmount);
         
         await client.query(
-            'INSERT INTO Valuations (PropertyId, ReferrerId, RequestedAmount, Status, Photos) VALUES ($1, $2, $3, $4, $5)',
-            [propertyId, referrerId, isNaN(amount) ? 0 : amount, 'Pending', JSON.stringify(photoPaths)]
+            'INSERT INTO valuations (propertyId, referrerId, requestedAmount, Status, Photos, latitude, longitude) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+            [propertyId, referrerId, isNaN(amount) ? 0 : amount, 'Pending', JSON.stringify(photoPaths), latitude || null, longitude || null]
         );
         
         await client.query('UPDATE Properties SET Status = \'Valuation\' WHERE Id = $1', [propertyId]);
