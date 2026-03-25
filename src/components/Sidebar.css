@@ -7,15 +7,52 @@
   flex-direction: column;
   position: sticky;
   top: 0;
-  transition: all 0.3s ease;
+  left: 0;
+  transition: transform 0.3s ease, width 0.3s ease, margin-left 0.3s ease;
+  z-index: 100;
+}
+
+.sidebar.closed {
+  width: 0;
+  margin-left: -260px;
+  overflow: hidden;
+}
+
+.mobile-close-btn {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+@media (max-width: 1024px) {
+  .sidebar {
+    position: fixed;
+    transform: translateX(-100%);
+    width: 280px;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+    box-shadow: 20px 0 50px -10px rgba(0, 0, 0, 0.1);
+  }
+
+  .mobile-close-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 }
 
 .sidebar-header {
   padding: 2rem 1.5rem;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 0.75rem;
 }
+
 
 .logo-icon {
   width: 32px;

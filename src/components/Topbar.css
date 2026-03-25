@@ -17,6 +17,30 @@
   color: var(--text-main);
 }
 
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.menu-toggle-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.menu-toggle-btn:hover {
+  background-color: #f1f5f9;
+  color: var(--text-main);
+}
+
 .topbar-right {
   display: flex;
   align-items: center;

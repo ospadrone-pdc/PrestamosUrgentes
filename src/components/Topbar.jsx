@@ -1,13 +1,18 @@
 import React from 'react';
-import { Bell, Search, User } from 'lucide-react';
+import { Bell, Search, User, Menu } from 'lucide-react';
 import './Topbar.css';
 
-const Topbar = ({ title }) => {
+
+const Topbar = ({ title, onToggleSidebar }) => {
   return (
     <header className="topbar">
       <div className="topbar-left">
+        <button className="menu-toggle-btn" onClick={onToggleSidebar}>
+          <Menu size={24} />
+        </button>
         <h2 className="page-title">{title}</h2>
       </div>
+
       <div className="topbar-right">
         <div className="search-bar">
           <Search size={18} />

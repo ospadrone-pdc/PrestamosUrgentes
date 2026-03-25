@@ -2,7 +2,9 @@
   display: flex;
   min-height: 100vh;
   background-color: var(--bg-main);
+  position: relative;
 }
+
 
 .main-wrapper {
   flex: 1;

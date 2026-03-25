@@ -9,11 +9,13 @@ import {
   Gavel, 
   UsersRound,
   Settings,
-  Camera
+  Camera,
+  X
 } from 'lucide-react';
 import './Sidebar.css';
 
-const Sidebar = () => {
+
+const Sidebar = ({ isOpen, onClose }) => {
   const menuItems = [
     { name: 'Dashboard', icon: <LayoutDashboard size={20} />, path: '/' },
     { name: 'Inversionistas', icon: <Briefcase size={20} />, path: '/investors' },
@@ -24,12 +26,21 @@ const Sidebar = () => {
     { name: 'Referenciadores', icon: <UsersRound size={20} />, path: '/referrers' },
     { name: 'Valuaciones', icon: <Camera size={20} />, path: '/valuations' },
   ];
+  const handleNavClick = () => {
+
+    if (window.innerWidth <= 1024) {
+      onClose();
+    }
+  };
 
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
       <div className="sidebar-header">
         <div className="logo-icon">PU</div>
         <span className="logo-text">Préstamos<span>Urgentes</span></span>
+        <button className="mobile-close-btn" onClick={onClose}>
+          <X size={20} />
+        </button>
       </div>
       <nav className="sidebar-nav">
         {menuItems.map((item) => (
@@ -37,7 +48,9 @@ const Sidebar = () => {
             key={item.path} 
             to={item.path} 
             className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}
+            onClick={handleNavClick}
           >
+
             {item.icon}
             <span>{item.name}</span>
           </NavLink>
