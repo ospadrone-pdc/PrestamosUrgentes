@@ -30,3 +30,10 @@ export const dashboardService = {
   },
   getStatsUrl: () => `${API_URL}/stats`
 };
+
+export const healthService = {
+  getHealth: async () => {
+    const res = await fetch(`${API_URL}/health`);
+    return res.json();
+  }
+};

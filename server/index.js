@@ -44,6 +44,15 @@ app.get('/api/debug/db', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+app.get('/api/health', async (req, res) => {
+    try {
+        const pool = await poolPromise;
+        const result = await pool.query('SELECT 1 as connected');
+        res.json({ status: 'ok', db: result.rows[0].connected === 1 });
+    } catch (err) {
+        res.status(500).json({ status: 'error', db: false, message: err.message });
+    }
+});
 
 // --- API ROUTES ---
 

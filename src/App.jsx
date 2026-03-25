@@ -9,7 +9,7 @@ import Investors from './pages/Investors';
 import Referrers from './pages/Referrers';
 import Legal from './pages/Legal';
 import Valuations from './pages/Valuations';
-const Settings = () => <Layout title="Configuración"><div>Configuración del Sistema</div></Layout>;
+import Settings from './pages/Settings';
 
 function App() {
   return (
