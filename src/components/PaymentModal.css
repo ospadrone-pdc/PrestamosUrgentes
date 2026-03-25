@@ -76,19 +76,22 @@
 
 .input-with-icon {
   position: relative;
-  display: flex;
-  align-items: center;
+  width: 100%;
 }
 
 .input-with-icon svg {
   position: absolute;
   left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
   color: var(--text-muted);
+  pointer-events: none;
+  z-index: 10;
 }
 
 .input-with-icon input, .input-with-icon select {
   width: 100%;
-  padding: 0.625rem 0.875rem 0.625rem 2.5rem;
+  padding: 0.625rem 0.875rem 0.625rem 2.25rem !important;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
   font-size: 0.875rem;
