@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Camera, DollarSign, FileText, CheckCircle, AlertTriangle, Clock, ArrowRight, Save } from 'lucide-react';
+import { X, Camera, DollarSign, FileText, CheckCircle, AlertTriangle, Clock, ArrowRight, Save, MapPin } from 'lucide-react';
 import './Modal.css';
 import MessageModal from './MessageModal';
 import { API_URL, BASE_URL } from '../../config';
@@ -108,7 +108,7 @@ const ValuationDetailModal = ({ isOpen, onClose, valuation, onSuccess }) => {
               </div>
               <div className="item">
                 <label>Monto Sugerido</label>
-                <span className="font-bold text-primary">${(valuation.RequestedAmount || 0).toLocaleString()}</span>
+                <span className="font-bold text-primary">${(parseFloat(valuation.RequestedAmount) || 0).toLocaleString()}</span>
               </div>
               {valuation.latitude && valuation.longitude && (
                 <div className="item location-item">
