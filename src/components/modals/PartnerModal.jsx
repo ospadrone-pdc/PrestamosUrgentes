@@ -16,26 +16,28 @@ const PartnerModal = ({ isOpen, onClose, onSuccess, defaultType = 'Investor', in
   const [loading, setLoading] = useState(false);
 
   React.useEffect(() => {
-    if (initialData) {
-      setFormData({
-        name: initialData.Name || '',
-        type: initialData.Type || defaultType,
-        phone: initialData.Phone || '',
-        email: initialData.Email || '',
-        commissionRate: initialData.CommissionRate || '',
-        balance: initialData.Balance || ''
-      });
-    } else {
+    if (isOpen) {
+      if (initialData) {
         setFormData({
-            name: '',
-            type: defaultType,
-            phone: '',
-            email: '',
-            commissionRate: '',
-            balance: ''
-          });
+          name: initialData.Name || '',
+          type: initialData.Type || defaultType,
+          phone: initialData.Phone || '',
+          email: initialData.Email || '',
+          commissionRate: initialData.CommissionRate || '',
+          balance: initialData.Balance || ''
+        });
+      } else {
+          setFormData({
+              name: '',
+              type: defaultType,
+              phone: '',
+              email: '',
+              commissionRate: '',
+              balance: ''
+            });
+      }
     }
-  }, [initialData, defaultType]);
+  }, [isOpen, initialData, defaultType]);
 
   if (!isOpen) return null;
 

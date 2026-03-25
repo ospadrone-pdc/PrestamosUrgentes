@@ -14,6 +14,18 @@ const ClientModal = ({ isOpen, onClose, onSuccess, initialData }) => {
   });
   const [loading, setLoading] = useState(false);
 
+  React.useEffect(() => {
+    if (isOpen) {
+      setFormData({
+        name: initialData?.Name || '',
+        email: initialData?.Email || '',
+        phone: initialData?.Phone || '',
+        address: initialData?.Address || '',
+        notes: initialData?.Notes || ''
+      });
+    }
+  }, [isOpen, initialData]);
+
   if (!isOpen) return null;
 
   const handleSubmit = async (e) => {

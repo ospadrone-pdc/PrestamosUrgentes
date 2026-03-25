@@ -20,15 +20,14 @@ const PropertyModal = ({ isOpen, onClose, onSuccess, initialData }) => {
       fetch(`${API_URL}/clients`)
         .then(res => res.json())
         .then(data => setClients(Array.isArray(data) ? data : []));
-    }
-    if (initialData) {
-        setFormData({
-            clientId: initialData.ClientId || '',
-            description: initialData.Description || '',
-            location: initialData.Location || '',
-            estimatedValue: initialData.EstimatedValue || '',
-            status: initialData.Status || 'Available'
-        });
+      
+      setFormData({
+        clientId: initialData?.ClientId || '',
+        description: initialData?.Description || '',
+        location: initialData?.Location || '',
+        estimatedValue: initialData?.EstimatedValue || '',
+        status: initialData?.Status || 'Available'
+      });
     }
   }, [isOpen, initialData]);
 
