@@ -26,6 +26,22 @@ app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+app.get('/api/diag', (req, res) => {
+    res.json({
+        status: 'ok',
+        time: new Date().toISOString(),
+        dir: __dirname,
+        distExists: fs.existsSync(path.join(__dirname, '..', 'dist')),
+        indexExists: fs.existsSync(path.join(__dirname, '..', 'dist', 'index.html'))
+    });
+});
+
+
+// Serve Vite build files from the root dist directory
+const distPath = path.join(__dirname, '..', 'dist');
+app.use(express.static(distPath));
+
+
 app.get('/api/debug/db', async (req, res) => {
     try {
         console.log('Diagnostic: Awaiting poolPromise...');
@@ -609,6 +625,16 @@ app.put('/api/legal/:id', async (req, res) => {
     }
 });
 
+// Catch-all route to serve index.html for any alternative routes (React Router support)
+app.get('*', (req, res) => {
+    if (fs.existsSync(path.join(distPath, 'index.html'))) {
+        res.sendFile(path.join(distPath, 'index.html'));
+    } else {
+        res.status(404).send('Frontend build not found. Please run "npm run build" at the root.');
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Servidor API ejecutándose en puerto ${PORT}`);
 });
+
