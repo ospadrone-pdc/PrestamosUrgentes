@@ -19,7 +19,10 @@ const Dashboard = () => {
   const [stats, setStats] = useState({
     totalPortfolio: 0,
     activeClients: 0,
-    riskyLoans: 0
+    riskyLoans: 0,
+    monthlyCollection: 0,
+    collectionHistory: [],
+    portfolioDistribution: []
   });
 
   useEffect(() => {
@@ -33,21 +36,6 @@ const Dashboard = () => {
     };
     fetchStats();
   }, []);
-
-  const dataCollection = [
-    { name: 'Ene', monto: 450000 },
-    { name: 'Feb', monto: 520000 },
-    { name: 'Mar', monto: 480000 },
-    { name: 'Abr', monto: 610000 },
-    { name: 'May', monto: 550000 },
-    { name: 'Jun', monto: 670000 },
-  ];
-
-  const dataPortfolio = [
-    { name: 'Sana', value: 75, color: '#10b981' },
-    { name: 'Riesgo', value: 15, color: '#f59e0b' },
-    { name: 'Vencida', value: 10, color: '#ef4444' },
-  ];
 
   return (
     <div className="dashboard-view">
@@ -68,9 +56,9 @@ const Dashboard = () => {
             <div className="kpi-icon bg-green"><CheckCircle2 size={20} /></div>
             <span className="kpi-label">Cobranza del Mes</span>
           </div>
-          <div className="kpi-value">$845,200</div>
+          <div className="kpi-value">${(stats?.monthlyCollection || 0).toLocaleString()}</div>
           <div className="kpi-footer">
-            <span className="trend positive">92% de la meta</span>
+            <span className="trend positive">Actualizado hoy</span>
           </div>
         </div>
 
@@ -81,7 +69,7 @@ const Dashboard = () => {
           </div>
           <div className="kpi-value">{stats?.activeClients || 0}</div>
           <div className="kpi-footer">
-            <span className="trend">12 nuevos este mes</span>
+            <span className="trend">Total en sistema</span>
           </div>
         </div>
 
@@ -99,10 +87,10 @@ const Dashboard = () => {
 
       <div className="charts-grid">
         <div className="card chart-card">
-          <h3>Cobranza Mensual (2024)</h3>
+          <h3>Cobranza Mensual ({new Date().getFullYear()})</h3>
           <div className="chart-container">
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={dataCollection}>
+              <BarChart data={stats.collectionHistory}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} dy={10} />
                 <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} tickFormatter={(val) => `$${val/1000}k`} />
@@ -122,13 +110,13 @@ const Dashboard = () => {
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
-                  data={dataPortfolio}
+                  data={stats.portfolioDistribution}
                   innerRadius={60}
                   outerRadius={80}
                   paddingAngle={5}
                   dataKey="value"
                 >
-                  {dataPortfolio.map((entry, index) => (
+                  {stats.portfolioDistribution.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
@@ -136,7 +124,7 @@ const Dashboard = () => {
               </PieChart>
             </ResponsiveContainer>
             <div className="chart-legend">
-              {dataPortfolio.map((item) => (
+              {stats.portfolioDistribution.map((item) => (
                 <div key={item.name} className="legend-item">
                   <span className="dot" style={{backgroundColor: item.color}}></span>
                   <span className="label">{item.name}</span>

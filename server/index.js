@@ -36,9 +36,9 @@ app.get('/api/debug/db', async (req, res) => {
         }
         
         console.log('Diagnostic: Pool acquired, querying schema...');
-        const tables = await pool.request().query("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES");
-        const columns = await pool.request().query("SELECT TABLE_NAME, COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Partners'");
-        res.json({ tables: tables.recordset, partnersColumns: columns.recordset });
+        const tables = await pool.query("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'");
+        const columns = await pool.query("SELECT table_name, column_name FROM information_schema.columns WHERE table_name = 'partners'");
+        res.json({ tables: tables.rows, partnersColumns: columns.rows });
     } catch (err) {
         console.error('Diagnostic Error:', err.message);
         res.status(500).json({ error: err.message });
@@ -129,17 +129,73 @@ app.get('/api/loans', async (req, res) => {
 app.get('/api/stats', async (req, res) => {
     try {
         const pool = await poolPromise;
-        const totalPortfolio = await pool.query('SELECT SUM(Amount) as Total FROM Loans');
-        const activeClients = await pool.query('SELECT COUNT(*) as Total FROM Clients');
-        const riskyLoans = await pool.query("SELECT COUNT(*) as Total FROM Loans WHERE Light = 'Red'");
         
+        // Basic Stats
+        const totalPortfolioRes = await pool.query('SELECT SUM(Amount) as total FROM Loans');
+        const activeClientsRes = await pool.query('SELECT COUNT(*) as total FROM Clients');
+        const riskyLoansRes = await pool.query("SELECT COUNT(*) as total FROM Loans WHERE Light = 'Red'");
+        
+        // Monthly Collection (Current Month)
+        const monthlyCollectionRes = await pool.query(`
+            SELECT SUM(Amount) as total 
+            FROM Payments 
+            WHERE DATE_TRUNC('month', PaymentDate) = DATE_TRUNC('month', CURRENT_DATE)
+        `);
+
+        // Collection History (Monthly for current year)
+        const collectionHistoryRes = await pool.query(`
+            SELECT 
+                EXTRACT(MONTH FROM PaymentDate) as month_num,
+                SUM(Amount) as monto
+            FROM Payments 
+            WHERE PaymentDate >= DATE_TRUNC('year', CURRENT_DATE)
+            GROUP BY month_num
+            ORDER BY month_num
+        `);
+
+        const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+        const collectionHistory = collectionHistoryRes.rows.map(row => ({
+            name: monthNames[parseInt(row.month_num) - 1],
+            monto: parseFloat(row.monto)
+        }));
+
+        // Portfolio Distribution
+        const distributionRes = await pool.query(`
+            SELECT 
+                Light,
+                COUNT(*) as count
+            FROM Loans 
+            GROUP BY Light
+        `);
+
+        const totalLoans = distributionRes.rows.reduce((acc, row) => acc + parseInt(row.count), 0);
+        const portfolioDistribution = distributionRes.rows.map(row => {
+            let name = 'Sana';
+            let color = '#10b981';
+            if (row.light === 'Yellow') { name = 'Riesgo'; color = '#f59e0b'; }
+            if (row.light === 'Red') { name = 'Vencida'; color = '#ef4444'; }
+            
+            return {
+                name,
+                value: totalLoans > 0 ? Math.round((parseInt(row.count) / totalLoans) * 100) : 0,
+                color
+            };
+        });
+
         res.json({
-            totalPortfolio: totalPortfolio.rows[0].total || 0,
-            activeClients: activeClients.rows[0].total || 0,
-            riskyLoans: riskyLoans.rows[0].total || 0
+            totalPortfolio: parseFloat(totalPortfolioRes.rows[0].total) || 0,
+            activeClients: parseInt(activeClientsRes.rows[0].total) || 0,
+            riskyLoans: parseInt(riskyLoansRes.rows[0].total) || 0,
+            monthlyCollection: parseFloat(monthlyCollectionRes.rows[0].total) || 0,
+            collectionHistory: collectionHistory.length > 0 ? collectionHistory : [
+                { name: 'Ene', monto: 0 }, { name: 'Feb', monto: 0 }, { name: 'Mar', monto: 0 }
+            ],
+            portfolioDistribution: portfolioDistribution.length > 0 ? portfolioDistribution : [
+                { name: 'Sana', value: 100, color: '#10b981' }
+            ]
         });
     } catch (err) {
-        console.error('API Error (GET Partners):', err.message);
+        console.error('API Error (GET Stats):', err.message);
         res.status(500).json({ error: err.message });
     }
 });
@@ -308,9 +364,7 @@ app.put('/api/properties/:id', async (req, res) => {
 app.delete('/api/properties/:id', async (req, res) => {
     try {
         const pool = await poolPromise;
-        await pool.request()
-            .input('id', sql.UniqueIdentifier, req.params.id)
-            .query('DELETE FROM Properties WHERE Id = @id');
+        await pool.query('DELETE FROM Properties WHERE Id = $1', [req.params.id]);
         res.json({ message: 'Propiedad eliminada' });
     } catch (err) {
         res.status(500).json({ error: err.message });
