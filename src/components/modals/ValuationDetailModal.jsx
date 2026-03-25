@@ -21,6 +21,23 @@ const ValuationDetailModal = ({ isOpen, onClose, valuation, onSuccess }) => {
         approvedAmount: valuation.ApprovedAmount || '',
         centralNotes: valuation.CentralNotes || ''
       });
+
+      // Auto-set status to Reviewing if it was Pending
+      if (valuation.Status === 'Pending') {
+        const autoReview = async () => {
+          try {
+            await fetch(`${API_URL}/valuations/${valuation.Id}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ status: 'Reviewing' })
+            });
+            onSuccess?.(); // Refresh list to show Reviewing state
+          } catch (e) {
+            console.error("Error auto-setting status to Reviewing:", e);
+          }
+        };
+        autoReview();
+      }
     }
   }, [isOpen, valuation]);
 
@@ -185,24 +202,35 @@ const ValuationDetailModal = ({ isOpen, onClose, valuation, onSuccess }) => {
               </div>
 
               {valuation.Status !== 'Evaluated' && valuation.Status !== 'Rejected' && (
-                <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1.5rem' }}>
+                  <div style={{ display: 'flex', gap: '1rem' }}>
+                    <button 
+                      type="button" 
+                      className="btn-danger" 
+                      style={{ flex: 1, justifyContent: 'center' }} 
+                      disabled={loading}
+                      onClick={() => handleUpdate('Rejected')}
+                    >
+                      <AlertTriangle size={18} /> Rechazar
+                    </button>
+                    <button 
+                      type="button" 
+                      className="btn-primary" 
+                      style={{ flex: 1, justifyContent: 'center' }} 
+                      disabled={loading || !dictum.approvedAmount}
+                      onClick={() => handleUpdate('Evaluated')}
+                    >
+                      <CheckCircle size={18} /> Aprobar
+                    </button>
+                  </div>
                   <button 
                     type="button" 
-                    className="btn-danger" 
-                    style={{ flex: 1, justifyContent: 'center' }} 
+                    className="btn-secondary" 
+                    style={{ width: '100%', justifyContent: 'center', background: '#f1f5f9' }} 
                     disabled={loading}
-                    onClick={() => handleUpdate('Rejected')}
+                    onClick={() => handleUpdate()}
                   >
-                    <AlertTriangle size={18} /> Rechazar
-                  </button>
-                  <button 
-                    type="button" 
-                    className="btn-primary" 
-                    style={{ flex: 1, justifyContent: 'center' }} 
-                    disabled={loading || !dictum.approvedAmount}
-                    onClick={() => handleUpdate('Evaluated')}
-                  >
-                    <CheckCircle size={18} /> Aprobar
+                    <Save size={18} /> Guardar Avance
                   </button>
                 </div>
               )}
