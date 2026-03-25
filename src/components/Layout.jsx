@@ -12,6 +12,9 @@ const Layout = ({ children, title }) => {
         <main className="content-area">
           {children}
         </main>
+        <footer className="layout-footer">
+          PRESTAMOS URGENTES &middot; {new Date().getFullYear()} &middot; BY NUVEXLABS
+        </footer>
       </div>
     </div>
   );
