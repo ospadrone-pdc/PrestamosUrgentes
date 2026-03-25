@@ -335,6 +335,27 @@ app.post('/api/loans', async (req, res) => {
     try {
         await client.query('BEGIN');
 
+        // 1. Validaciones de Balance y Porcentaje
+        if (Array.isArray(investors)) {
+            let totalPercent = 0;
+            for (const inv of investors) {
+                totalPercent += parseFloat(inv.percentage);
+                const partnerRes = await client.query('SELECT name, balance FROM Partners WHERE id = $1', [inv.partnerId]);
+                const partner = partnerRes.rows[0];
+                const required = (parseFloat(amount) * parseFloat(inv.percentage)) / 100;
+
+                if (!partner) throw new Error('Uno de los inversionistas no existe.');
+                if (parseFloat(partner.balance) < required) {
+                    throw new Error(`Inversionista ${partner.name} no tiene fondos suficientes (Saldo: $${parseFloat(partner.balance).toLocaleString()}, Requerido: $${required.toLocaleString()})`);
+                }
+            }
+            if (Math.abs(totalPercent - 100) > 0.01) {
+                throw new Error('La suma de porcentajes de inversionistas debe ser 100%');
+            }
+        } else {
+            throw new Error('Debe asignar al menos un inversionista.');
+        }
+
         const loanRes = await client.query(`
             INSERT INTO Loans (ClientId, PropertyId, Amount, InterestRate, MoratorioRate, TermMonths, Status, StartDate)
             VALUES ($1, $2, $3, $4, $5, $6, 'Active', CURRENT_DATE)

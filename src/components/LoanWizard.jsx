@@ -48,7 +48,60 @@ const LoanWizard = ({ isOpen, onClose }) => {
 
   if (!isOpen) return null;
 
-  const nextStep = () => setStep(s => s + 1);
+  const validateStep = () => {
+    if (step === 1) {
+      if (!formData.client || !formData.property) {
+        setMsg({ open: true, title: 'Validación', message: 'Debes seleccionar un cliente y una propiedad.', type: 'error' });
+        return false;
+      }
+    }
+    if (step === 2) {
+      const amount = parseFloat(formData.amount);
+      const interest = parseFloat(formData.interestRate);
+      const moratorio = parseFloat(formData.lateFeeRate);
+      const term = parseInt(formData.term);
+      
+      if (!amount || amount <= 0) {
+        setMsg({ open: true, title: 'Validación', message: 'El monto debe ser mayor a 0.', type: 'error' });
+        return false;
+      }
+      if (isNaN(interest) || isNaN(moratorio) || isNaN(term)) {
+        setMsg({ open: true, title: 'Validación', message: 'Tasa de interés, moratoria y plazo son campos obligatorios.', type: 'error' });
+        return false;
+      }
+    }
+    if (step === 3) {
+      let totalPercent = 0;
+      for (const inv of formData.investors) {
+        if (!inv.partnerId) {
+          setMsg({ open: true, title: 'Validación', message: 'Todos los slots de inversionista deben tener un socio seleccionado.', type: 'error' });
+          return false;
+        }
+        const partner = partners.find(p => p.Id == inv.partnerId);
+        const requiredAmount = (parseFloat(formData.amount) * parseFloat(inv.percentage)) / 100;
+        
+        if (requiredAmount > (partner?.Balance || 0)) {
+          setMsg({ 
+            open: true, 
+            title: 'Fondos Insuficientes', 
+            message: `El inversionista ${partner?.Name} no cuenta con fondos suficientes (Saldo: $${(partner?.Balance || 0).toLocaleString()}, Requerido: $${requiredAmount.toLocaleString()})`, 
+            type: 'error' 
+          });
+          return false;
+        }
+        totalPercent += parseFloat(inv.percentage);
+      }
+      if (Math.abs(totalPercent - 100) > 0.01) {
+        setMsg({ open: true, title: 'Validación', message: 'La suma de porcentajes debe ser exactamente 100%. Actualmente: ' + totalPercent + '%', type: 'error' });
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const nextStep = () => {
+    if (validateStep()) setStep(s => s + 1);
+  };
   const prevStep = () => setStep(s => s - 1);
 
   const handleConfirm = async () => {
@@ -132,13 +185,16 @@ const LoanWizard = ({ isOpen, onClose }) => {
                 >
                   <option value="">Seleccionar propiedad...</option>
                   {properties
-                    .filter(p => p.ClientId == formData.client && p.ValuatedAmount > 0)
+                    .filter(p => p.ClientId == formData.client && p.ValuatedAmount > 0 && p.Status === 'Available')
                     .map(p => (
                       <option key={p.Id} value={p.Id}>
                         {p.Description} - Valuada: ${p.ValuatedAmount.toLocaleString()}
                       </option>
                   ))}
                 </select>
+                {formData.client && properties.filter(p => p.ClientId == formData.client && p.ValuatedAmount > 0 && p.Status === 'Available').length === 0 && (
+                  <p className="helper-text error">Este cliente no tiene propiedades valuadas disponibles para garantía.</p>
+                )}
                 {!formData.client && <p className="helper-text error">Selecciona un cliente primero.</p>}
               </div>
             </div>
@@ -259,7 +315,7 @@ const LoanWizard = ({ isOpen, onClose }) => {
           )}
           <div className="flex-1"></div>
           {step < 4 ? (
-            <button className="btn-primary" onClick={nextStep} disabled={step === 1 && (!formData.client || !formData.property)}>
+            <button className="btn-primary" onClick={nextStep}>
               Siguiente <ChevronRight size={18} />
             </button>
           ) : (
