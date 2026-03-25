@@ -26,6 +26,7 @@ const Dashboard = () => {
   });
 
   useEffect(() => {
+    console.log('Dashboard: Fetching from', dashboardService.getStatsUrl());
     const fetchStats = async () => {
       try {
         const data = await dashboardService.getStats();

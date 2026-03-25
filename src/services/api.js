@@ -27,5 +27,6 @@ export const dashboardService = {
   getStats: async () => {
     const res = await fetch(`${API_URL}/stats`);
     return res.json();
-  }
+  },
+  getStatsUrl: () => `${API_URL}/stats`
 };
